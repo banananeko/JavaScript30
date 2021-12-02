@@ -17,6 +17,48 @@
 <script>
 const endpoint = 'https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json';
 
+const cities = [];
+
+fetch(endpoint)   // fetch returns a response object //
+  .then(blob => blob.json())  // in proto, there is a json() function, which is another response
+  .then(data => cities.push(...data)); // OR let cities; cities = data to remain const cities
+  // ... spread data (es6)
+
+
+function findMatches(wordToMatch, cities) {
+  return cities.filter(place => {
+    // here we need to figure out if the city or state matches what was searched
+    const regexp = new RegExp(wordToMatch, 'gi');
+    return place.city.match(regexp) || place.state.match(regexp);
+  })
+}
+
+const searchInput = document.querySelector('.search');
+const suggestions = document.querySelector('.suggestions');
+
+searchInput.addEventListener('keyup', displayMatches);
+
+function displayMatches() {
+  const matchArray = findMatches(searchInput.value, cities);
+  const html = matchArray.map(place => {
+    const regex = new RegExp(searchInput.value, 'gi');
+    const cityName = place.city.replace(regex, `<span class="hl">${searchInput.value}</span>`);
+    const stateName = place.state.replace(regex, `<span class="hl">${searchInput.value}</span>`);
+    // const pop = numberWithCommas(place.population);
+    return `
+      <li>
+        <span class="name">${cityName}, ${stateName}</span>
+        <span class="population">${numberWithCommas(place.population)}</span>
+      </li>
+    `;
+  }).join('');
+  suggestions.innerHTML = html;
+}
+
+function numberWithCommas(x) {
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 </script>
 </body>
 </html>
